@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Events in Sydney</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+    <style>
+      /* Dark background image */
+      body {
+        background: url('https://storage.googleapis.com/limecube-live-c760799c/root%2FBlog%2Ffilemanager%2Fsydney13.jpg?lcc=j3xh88473ij') no-repeat center center fixed;
+        background-size: cover;
+        margin: 0;
+        color: #fff;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      /* Overlay to darken background for better text contrast */
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        background-color: rgba(0, 0, 0, 0.6);
+        z-index: -1;
+      }
+
+      /* Cards with dark transparent background */
+      .card {
+        background-color: rgba(0, 0, 0, 0.7);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.9);
+        border: none;
+        border-radius: 12px;
+        color: #fff;
+      }
+
+      /* Container padding */
+      .container {
+        padding-top: 3rem;
+        padding-bottom: 3rem;
+      }
+
+      /* Main title */
+      h1 {
+        color: #fff;
+        font-weight: 900;
+        text-align: center;
+        text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+        margin-bottom: 2rem;
+        font-size: 3rem;
+        letter-spacing: 1.5px;
+      }
+
+      /* Section headings */
+      h3 {
+        color: #eee;
+        font-weight: 700;
+        text-shadow: 1px 1px 6px rgba(0, 0, 0, 0.7);
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid #fff;
+        padding-bottom: 0.3rem;
+      }
+
+      /* Event titles */
+      .event-title {
+        color: #fff;
+        font-weight: 700;
+        font-size: 1.25rem;
+        text-shadow: 1px 1px 4px rgba(0,0,0,0.9);
+      }
+
+      /* Input styling */
+      #searchInput {
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.9);
+        font-size: 1.1rem;
+        background-color: #222;
+        border: 1px solid #444;
+        color: #eee;
+      }
+      #searchInput::placeholder {
+        color: #bbb;
+      }
+
+      /* Buttons */
+      .btn-primary {
+        background-color: #1a73e8;
+        border: none;
+        box-shadow: 0 3px 8px rgba(26, 115, 232, 0.6);
+        transition: background-color 0.3s ease;
+        font-weight: 600;
+        border-radius: 8px;
+        color: #fff;
+      }
+      .btn-primary:hover {
+        background-color: #155ab6;
+      }
+
+      /* MODAL TEXT COLOR FIX */
+      #ticketModal .modal-content {
+        background-color: rgba(0, 0, 0, 0.85); /* dark transparent background */
+        color: #fff; /* white text */
+      }
+      #ticketModal .modal-header,
+      #ticketModal .modal-body,
+      #ticketModal .modal-footer {
+        color: #fff;
+      }
+      #ticketModal label,
+      #ticketModal input,
+      #ticketModal p,
+      #ticketModal .form-check-label,
+      #formMessage {
+        color: #fff;
+      }
+      #ticketModal input.form-control {
+        background-color: #222;
+        border: 1px solid #555;
+        color: #fff;
+      }
+      #ticketModal input.form-control::placeholder {
+        color: #ccc;
+      }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Events in Sydney, Australia</h1>
+
+        <input id="searchInput" type="text" class="form-control mb-4" placeholder="Search events by title..." onkeyup="filterEvents()" />
+
+        <h3>Sydney Events</h3>
+        <div id="sydneyEvents" class="row mb-5">
+            {% for event in sydney_events %}
+            <div class="col-md-4 mb-3 event-card">
+                <div class="card h-100">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title event-title">{{ event.title }}</h5>
+                        <p class="card-text">{{ event.date }}</p>
+                        <button class="btn btn-primary mt-auto" onclick="openTicketModal({{ event.id }}, '{{ event.title }}')">GET TICKETS</button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <h3>Other Australian Events</h3>
+        <div id="otherEvents" class="row">
+            {% for event in australia_events %}
+            <div class="col-md-4 mb-3 event-card">
+                <div class="card h-100">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title event-title">{{ event.title }}</h5>
+                        <p class="card-text">{{ event.date }}</p>
+                        <button class="btn btn-primary mt-auto" onclick="openTicketModal({{ event.id }}, '{{ event.title }}')">GET TICKETS</button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="ticketModal" tabindex="-1" aria-labelledby="ticketModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <form id="ticketForm" class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="ticketModalLabel">Get Tickets</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p id="eventTitle"></p>
+            <div class="mb-3">
+              <label for="emailInput" class="form-label">Email address</label>
+              <input type="email" class="form-control" id="emailInput" required />
+            </div>
+            <div class="form-check mb-3">
+              <input class="form-check-input" type="checkbox" value="" id="subscribeCheck" />
+              <label class="form-check-label" for="subscribeCheck">
+                Subscribe to event updates
+              </label>
+            </div>
+            <div id="formMessage" class="text-danger"></div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Reserve Ticket</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      let currentEventId = null;
+
+      function openTicketModal(eventId, eventTitle) {
+        currentEventId = eventId;
+        document.getElementById('eventTitle').innerText = eventTitle;
+        document.getElementById('emailInput').value = '';
+        document.getElementById('subscribeCheck').checked = false;
+        document.getElementById('formMessage').innerText = '';
+        const modal = new bootstrap.Modal(document.getElementById('ticketModal'));
+        modal.show();
+      }
+
+      document.getElementById('ticketForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const email = document.getElementById('emailInput').value;
+        const subscribe = document.getElementById('subscribeCheck').checked;
+
+        if (!email || !currentEventId) {
+          document.getElementById('formMessage').innerText = 'Please enter your email.';
+          return;
+        }
+
+        const response = await fetch('/api/get_ticket', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({email, event_id: currentEventId, subscribe})
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          window.location.href = result.redirect;
+        } else {
+          document.getElementById('formMessage').innerText = result.message || 'Error occurred.';
+        }
+      });
+
+      // Simple client-side filtering of events by title
+      function filterEvents() {
+        const filter = document.getElementById('searchInput').value.toLowerCase();
+        const cards = document.querySelectorAll('.event-card');
+
+        cards.forEach(card => {
+          const title = card.querySelector('.event-title').innerText.toLowerCase();
+          if (title.includes(filter)) {
+            card.style.display = '';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      }
+    </script>
+</body>
+</html>
